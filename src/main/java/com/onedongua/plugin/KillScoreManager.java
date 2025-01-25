@@ -6,23 +6,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.*;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ScoreManager {
+public class KillScoreManager {
 
     private final JavaPlugin plugin;
     private final FileManager fileManager;
 
-    private BukkitTask task;
     private final Map<String, Integer> playerScores = new HashMap<>();
-    private long period = 100;
     private Scoreboard scoreboard;
     private Objective objective;
 
-    public ScoreManager(JavaPlugin plugin, FileManager fileManager, Scoreboard scoreboard) {
+    public KillScoreManager(JavaPlugin plugin, FileManager fileManager, Scoreboard scoreboard) {
         this.plugin = plugin;
         this.fileManager = fileManager;
         this.scoreboard = scoreboard;
@@ -33,52 +34,29 @@ public class ScoreManager {
     }
 
     private void setupScoreboard() {
-        objective = scoreboard.registerNewObjective("score", "dummy", "积分榜");
-        objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
-    }
-
-    public void startScoreTask() {
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
-        }
-        task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!player.isDead()) {
-                        addScore(player, 1);
-                    }
-                }
-                updateAllScoresOnScoreboard();
-            }
-        }.runTaskTimer(plugin, period, period);
-    }
-
-    public void stopScoreTask() {
-        if (task != null && !task.isCancelled()) {
-            task.cancel();
-        }
-    }
-
-    public void setPeriod(long period) {
-        this.period = period * 20;
-        stopScoreTask();
-        startScoreTask();
+        objective = scoreboard.registerNewObjective("kill_score", "dummy", "击杀分数榜");
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     public void loadScores() {
-        Map<String, Integer> storedScores = fileManager.loadAllScores();
+        Map<String, Integer> storedScores = fileManager.loadAllKillScores();
         playerScores.putAll(storedScores);
         updateAllScoresOnScoreboard();
     }
 
     public void saveAllScores() {
-        fileManager.saveAllScores(playerScores);
+        fileManager.saveAllKillScores(playerScores);
     }
 
     public void addScore(Player player, int i) {
         String uuid = player.getUniqueId().toString();
         int score = playerScores.getOrDefault(uuid, 0) + i;
+        playerScores.put(uuid, score);
+    }
+
+    public void timeScore(Player player, double times) {
+        String uuid = player.getUniqueId().toString();
+        int score = (int) (playerScores.getOrDefault(uuid, 0) * times);
         playerScores.put(uuid, score);
     }
 

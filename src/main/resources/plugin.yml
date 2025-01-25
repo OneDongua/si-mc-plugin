@@ -1,10 +1,10 @@
 name: si-plugin
-version: '1.3-SNAPSHOT'
+version: '1.4-SNAPSHOT'
 main: com.onedongua.plugin.SIPlugin
 api-version: '1.20'
 commands:
   si-score:
-    aliases: [siscore]
+    aliases: [ siscore ]
     description: 管理玩家的分数
     usage: |
       /si-score <子命令> [参数…]
@@ -17,7 +17,22 @@ commands:
     permission: siplugin.siscore
     permission-message: 你没有权限使用此命令！
 
+  si-killscore:
+    aliases: [ sikillscore ]
+    description: 管理玩家的分数
+    usage: |
+      /si-killscore <子命令> [参数…]
+        子命令列表：
+          - add <玩家名> <分数>: 增加某玩家的分数
+          - set <玩家名> <分数>: 设置某玩家的分数
+    permission: siplugin.sikillscore
+    permission-message: 你没有权限使用此命令！
+
 permissions:
   siplugin.siscore:
+    description: 允许管理玩家的分数
+    default: op
+
+  siplugin.sikillscore:
     description: 允许管理玩家的分数
     default: op

@@ -13,6 +13,7 @@ public class FileManager {
 
     private final JavaPlugin plugin;
     private final File scoreFile;
+    private final File killScoreFile;
     private final File logFile;
 
     public FileManager(JavaPlugin plugin) {
@@ -21,6 +22,7 @@ public class FileManager {
         plugin.getDataFolder().mkdirs();
         this.logFile = new File(plugin.getDataFolder(), "latest.log");
         this.scoreFile = new File(plugin.getDataFolder(), "player_scores.dat");
+        this.killScoreFile = new File(plugin.getDataFolder(), "player_kill_scores.dat");
         if (!logFile.exists()) {
             try {
                 logFile.createNewFile();
@@ -31,6 +33,13 @@ public class FileManager {
         if (!scoreFile.exists()) {
             try {
                 scoreFile.createNewFile();
+            } catch (IOException e) {
+                log(e);
+            }
+        }
+        if (!killScoreFile.exists()) {
+            try {
+                killScoreFile.createNewFile();
             } catch (IOException e) {
                 log(e);
             }
@@ -66,6 +75,41 @@ public class FileManager {
 
     public void saveAllScores(Map<String, Integer> scores) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(scoreFile))) {
+            oos.writeObject(scores);
+        } catch (IOException e) {
+            log(e);
+        }
+    }
+
+    public int loadPlayerKillScore(Player player) {
+        Map<String, Integer> scores = loadAllKillScores();
+        return scores.getOrDefault(player.getUniqueId().toString(), 0);
+    }
+
+    public void savePlayerKillScore(Player player, int score) {
+        Map<String, Integer> scores = loadAllKillScores();
+        scores.put(player.getUniqueId().toString(), score);
+        saveAllKillScores(scores);
+    }
+
+    public Map<String, Integer> loadAllKillScores() {
+        if (!killScoreFile.exists() || killScoreFile.length() == 0)
+            return new HashMap<>();
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(killScoreFile))) {
+            Object object = ois.readObject();
+            if (object instanceof Map) {
+                return (Map<String, Integer>) object;
+            } else {
+                return new HashMap<>();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            log(e);
+            return new HashMap<>();
+        }
+    }
+
+    public void saveAllKillScores(Map<String, Integer> scores) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(killScoreFile))) {
             oos.writeObject(scores);
         } catch (IOException e) {
             log(e);
