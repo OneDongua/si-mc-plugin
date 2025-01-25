@@ -65,12 +65,14 @@ public class ScoreCommandExecutor implements CommandExecutor {
 
                 switch (subCommand) {
                     case "add":
-                        scoreManager.increaseScore(player, score);
+                        scoreManager.addScore(player, score);
+                        scoreManager.updateAllScoresOnScoreboard();
                         sender.sendMessage("§2已为玩家 " + playerName + " 增加 " + score + " 分!");
                         break;
 
                     case "set":
                         scoreManager.setScore(player, score);
+                        scoreManager.updateAllScoresOnScoreboard();
                         sender.sendMessage("§2已将玩家 " + playerName + " 的分数设置为 " + score + "!");
                         break;
                 }

@@ -64,7 +64,7 @@ public class FileManager {
         }
     }
 
-    private void saveAllScores(Map<String, Integer> scores) {
+    public void saveAllScores(Map<String, Integer> scores) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(scoreFile))) {
             oos.writeObject(scores);
         } catch (IOException e) {

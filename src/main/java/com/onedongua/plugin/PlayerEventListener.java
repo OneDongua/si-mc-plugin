@@ -18,26 +18,18 @@ public class PlayerEventListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
-        // 加载玩家分数
-        scoreManager.loadScore(player);
-
-        // 设置计分板
-        scoreManager.setScoreboard(player);
+        scoreManager.assignScoreboardToPlayer(player);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-
         // 保存玩家分数
-        scoreManager.saveScore(player);
+        scoreManager.saveAllScores();
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-
         // 玩家死亡时清零分数
         scoreManager.resetScore(player);
     }

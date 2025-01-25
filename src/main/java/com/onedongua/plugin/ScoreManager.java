@@ -1,6 +1,7 @@
 package com.onedongua.plugin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -16,12 +17,18 @@ public class ScoreManager {
     private final FileManager fileManager;
 
     private BukkitTask task;
-    private final Map<Player, Integer> playerScores = new HashMap<>();
+    private final Map<String, Integer> playerScores = new HashMap<>();
     private long period = 100;
+    private Scoreboard scoreboard;
+    private Objective objective;
 
     public ScoreManager(JavaPlugin plugin, FileManager fileManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
+
+        // 初始化计分板
+        setupScoreboard();
+        loadScores();
     }
 
     public void startScoreTask() {
@@ -33,9 +40,10 @@ public class ScoreManager {
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (!player.isDead()) {
-                        increaseScore(player);
+                        addScore(player, 1);
                     }
                 }
+                updateAllScoresOnScoreboard();
             }
         }.runTaskTimer(plugin, period, period);
     }
@@ -43,7 +51,6 @@ public class ScoreManager {
     public void stopScoreTask() {
         if (task != null && !task.isCancelled()) {
             task.cancel();
-
         }
     }
 
@@ -53,61 +60,64 @@ public class ScoreManager {
         startScoreTask();
     }
 
-    public void loadScore(Player player) {
-        int score = fileManager.loadPlayerScore(player);
-        playerScores.put(player, score);
-    }
-
-    public void saveScore(Player player) {
-        fileManager.savePlayerScore(player, getScore(player));
+    public void loadScores() {
+        Map<String, Integer> storedScores = fileManager.loadAllScores();
+        playerScores.putAll(storedScores);
+        updateAllScoresOnScoreboard();
     }
 
     public void saveAllScores() {
-        for (Map.Entry<Player, Integer> entry : playerScores.entrySet()) {
-            fileManager.savePlayerScore(entry.getKey(), entry.getValue());
-        }
+        fileManager.saveAllScores(playerScores);
     }
 
-    public void increaseScore(Player player) {
-        int score = getScore(player) + 1;
-        playerScores.put(player, score);
-        updateScoreboard(player);
-    }
-
-    public void increaseScore(Player player, int amount) {
-        int score = getScore(player) + amount;
-        playerScores.put(player, score);
-        updateScoreboard(player);
+    public void addScore(Player player, int i) {
+        String uuid = player.getUniqueId().toString();
+        int score = playerScores.getOrDefault(uuid, 0) + i;
+        playerScores.put(uuid, score);
     }
 
     public void resetScore(Player player) {
-        playerScores.put(player, 0);
-        updateScoreboard(player);
+        String uuid = player.getUniqueId().toString();
+        playerScores.put(uuid, 0);
     }
 
     public void setScore(Player player, int score) {
-        playerScores.put(player, score);
-        updateScoreboard(player);
+        String uuid = player.getUniqueId().toString();
+        playerScores.put(uuid, score);
     }
 
     public int getScore(Player player) {
-        return playerScores.getOrDefault(player, 0);
+        return playerScores.getOrDefault(player.getUniqueId().toString(), 0);
     }
 
-    public void setScoreboard(Player player) {
+    private void setupScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
-        Scoreboard scoreboard = manager.getNewScoreboard();
-        Objective objective = scoreboard.registerNewObjective("score", "dummy", "积分榜");
+        scoreboard = manager.getNewScoreboard();
+        objective = scoreboard.registerNewObjective("score", "dummy", "积分榜");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+    }
+
+    public void assignScoreboardToPlayer(Player player) {
         player.setScoreboard(scoreboard);
     }
 
-    private void updateScoreboard(Player player) {
-        Scoreboard scoreboard = player.getScoreboard();
-        Objective objective = scoreboard.getObjective("score");
-        if (objective != null) {
-            objective.getScore(player.getName()).setScore(getScore(player));
+    public void updateAllScoresOnScoreboard() {
+        // 清空计分板
+        for (String entry : scoreboard.getEntries()) {
+            scoreboard.resetScores(entry);
+        }
+
+        // 更新所有玩家分数（包括离线玩家）
+        for (Map.Entry<String, Integer> entry : playerScores.entrySet()) {
+            String playerName = getPlayerName(entry.getKey());
+            if (playerName != null) {
+                objective.getScore(playerName).setScore(entry.getValue());
+            }
         }
     }
 
+    private String getPlayerName(String uuid) {
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(java.util.UUID.fromString(uuid));
+        return offlinePlayer.getName();
+    }
 }
