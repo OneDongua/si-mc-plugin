@@ -1,7 +1,5 @@
 package com.onedongua.plugin;
 
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.ComponentLike;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
