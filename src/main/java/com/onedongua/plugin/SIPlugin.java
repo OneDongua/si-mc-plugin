@@ -16,7 +16,7 @@ public class SIPlugin extends JavaPlugin {
         scoreManager = new ScoreManager(this, fileManager);
 
         // 注册事件监听器
-        Bukkit.getPluginManager().registerEvents(new PlayerEventListener(scoreManager), this);
+        Bukkit.getPluginManager().registerEvents(new ScoreListener(this, scoreManager), this);
         Bukkit.getPluginManager().registerEvents(new InvincibilityListener(this), this);
 
         // 启动分数定时任务
