@@ -1,0 +1,23 @@
+name: si-plugin
+version: '1.1-SNAPSHOT'
+main: com.onedongua.plugin.SIPlugin
+api-version: '1.20'
+commands:
+  si-score:
+    aliases: [siscore]
+    description: 管理玩家的分数
+    usage: |
+      /si-score <子命令> [参数…]
+        子命令列表：
+          - add <玩家名> <分数>: 增加某玩家的分数
+          - set <玩家名> <分数>: 设置某玩家的分数
+          - time <时长(秒)>: 设置加分计时器间隔时长
+          - start: 开始计时器
+          - stop: 停止计时器
+    permission: siplugin.siscore
+    permission-message: 你没有权限使用此命令！
+
+permissions:
+  siplugin.siscore:
+    description: 允许管理玩家的分数
+    default: op
