@@ -1,0 +1,36 @@
+# Gradle
+.gradle/
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Log files
+*.log
+
+# Compiled Java classes
+*.class
+
+# System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Other
+*.bak
+*.swp
+*.swo
