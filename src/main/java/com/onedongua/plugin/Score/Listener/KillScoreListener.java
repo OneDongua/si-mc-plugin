@@ -22,7 +22,7 @@ public class KillScoreListener implements Listener {
 
     private final KillScoreManager scoreManager;
     private final JavaPlugin plugin;
-    private Logger logger;
+    private final Logger logger;
 
     public KillScoreListener(JavaPlugin plugin, KillScoreManager scoreManager) {
         this.scoreManager = scoreManager;
@@ -37,7 +37,7 @@ public class KillScoreListener implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                player.sendMessage("§2[通知] 击杀分数死亡减半");
+                player.sendMessage("§2[通知] 击杀分数死亡减半！");
                 player.sendMessage("§2[通知] 可通过 /si-shop 或 /sishop 进入击杀分商店");
             }
         }.runTaskLater(plugin, 200);
@@ -60,7 +60,10 @@ public class KillScoreListener implements Listener {
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Entity entity = event.getEntity();
-        if (entity.getType() == EntityType.ZOMBIE && entity instanceof LivingEntity) {
+        if ((entity.getType() == EntityType.ZOMBIE ||
+                entity.getType() == EntityType.ZOMBIE_VILLAGER ||
+                entity.getType() == EntityType.DROWNED)
+                && entity instanceof LivingEntity) {
             if (event.getDamager() instanceof Player player) {
                 // 给僵尸添加 Metadata，标记最后攻击者
                 entity.setMetadata("LastAttacker",
@@ -71,12 +74,13 @@ public class KillScoreListener implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (event.getEntityType() == EntityType.ZOMBIE) {
+        if (event.getEntityType() == EntityType.ZOMBIE ||
+                event.getEntityType() == EntityType.ZOMBIE_VILLAGER ||
+                event.getEntityType() == EntityType.DROWNED) {
             LivingEntity zombie = event.getEntity();
 
             // 如果已经处理过，则返回
             if (zombie.hasMetadata("hasHandledDeath")) return;
-
             // 标记已处理
             zombie.setMetadata("hasHandledDeath", new FixedMetadataValue(plugin, true));
 
