@@ -1,5 +1,7 @@
-package com.onedongua.plugin;
+package com.onedongua.plugin.Score.Listener;
 
+import com.onedongua.plugin.Logger;
+import com.onedongua.plugin.Score.KillScoreManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -14,22 +16,31 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class KillScoreListener implements Listener {
 
     private final KillScoreManager scoreManager;
     private final JavaPlugin plugin;
+    private Logger logger;
 
     public KillScoreListener(JavaPlugin plugin, KillScoreManager scoreManager) {
         this.scoreManager = scoreManager;
         this.plugin = plugin;
-
+        this.logger = new Logger(plugin);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         scoreManager.assignScoreboardToPlayer(player);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.sendMessage("§2[通知] 击杀分数死亡减半");
+                player.sendMessage("§2[通知] 可通过 /si-shop 或 /sishop 进入击杀分商店");
+            }
+        }.runTaskLater(plugin, 200);
     }
 
     @EventHandler
@@ -75,15 +86,16 @@ public class KillScoreListener implements Listener {
             // 检测 2
             if (player == null && zombie.hasMetadata("LastAttacker")) {
                 String playerName = zombie.getMetadata("LastAttacker").get(0).asString();
-                new FileManager(plugin).log(playerName);
+                logger.logf(playerName + " 进入检测2");
                 player = Bukkit.getPlayer(playerName);
             }
 
             if (player != null && player.isOnline()) {
                 // 给玩家加分
-                scoreManager.addScore(player, 20);
+                int point = scoreManager.getEachPoint();
+                scoreManager.addScore(player, point);
                 scoreManager.updateAllScoresOnScoreboard();
-                player.sendActionBar("§a+20");
+                player.sendActionBar("§a+" + point);
             }
         }
     }

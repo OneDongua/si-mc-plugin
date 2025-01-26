@@ -1,5 +1,6 @@
-package com.onedongua.plugin;
+package com.onedongua.plugin.Score.Listener;
 
+import com.onedongua.plugin.Score.ScoreManager;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -7,6 +8,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class ScoreListener implements Listener {
 
@@ -23,6 +25,12 @@ public class ScoreListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         scoreManager.assignScoreboardToPlayer(player);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.sendMessage("§2[通知] 生存积分已迁移至 Tab 列表！");
+            }
+        }.runTaskLater(plugin, 200);
     }
 
     @EventHandler

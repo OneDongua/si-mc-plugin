@@ -1,47 +1,40 @@
-package com.onedongua.plugin;
+package com.onedongua.plugin.Score;
 
+import com.onedongua.plugin.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FileManager {
+public class ScoreFileManager {
 
     private final JavaPlugin plugin;
+    private Logger logger;
     private final File scoreFile;
     private final File killScoreFile;
-    private final File logFile;
 
-    public FileManager(JavaPlugin plugin) {
+    public ScoreFileManager(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.logger = new Logger(plugin);
 
         plugin.getDataFolder().mkdirs();
-        this.logFile = new File(plugin.getDataFolder(), "latest.log");
         this.scoreFile = new File(plugin.getDataFolder(), "player_scores.dat");
         this.killScoreFile = new File(plugin.getDataFolder(), "player_kill_scores.dat");
-        if (!logFile.exists()) {
-            try {
-                logFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+
         if (!scoreFile.exists()) {
             try {
                 scoreFile.createNewFile();
             } catch (IOException e) {
-                log(e);
+                logger.log(e);
             }
         }
         if (!killScoreFile.exists()) {
             try {
                 killScoreFile.createNewFile();
             } catch (IOException e) {
-                log(e);
+                logger.log(e);
             }
         }
     }
@@ -68,7 +61,7 @@ public class FileManager {
                 return new HashMap<>();
             }
         } catch (IOException | ClassNotFoundException e) {
-            log(e);
+            logger.log(e);
             return new HashMap<>();
         }
     }
@@ -77,7 +70,7 @@ public class FileManager {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(scoreFile))) {
             oos.writeObject(scores);
         } catch (IOException e) {
-            log(e);
+            logger.log(e);
         }
     }
 
@@ -103,7 +96,7 @@ public class FileManager {
                 return new HashMap<>();
             }
         } catch (IOException | ClassNotFoundException e) {
-            log(e);
+            logger.log(e);
             return new HashMap<>();
         }
     }
@@ -112,29 +105,9 @@ public class FileManager {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(killScoreFile))) {
             oos.writeObject(scores);
         } catch (IOException e) {
-            log(e);
+            logger.log(e);
         }
     }
 
-    public void log(String message) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String logMessage = String.format("[%s] %s", timestamp, message);
-        try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
-            plugin.getLogger().info(logMessage);
-            writer.println(logMessage);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public void log(Exception exception) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        plugin.getLogger().warning("An error occurred");
-        try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
-            writer.println("[" + timestamp + "] ");
-            exception.printStackTrace(writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

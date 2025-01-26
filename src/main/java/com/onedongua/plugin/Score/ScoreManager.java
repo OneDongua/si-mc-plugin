@@ -1,4 +1,4 @@
-package com.onedongua.plugin;
+package com.onedongua.plugin.Score;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -6,24 +6,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class KillScoreManager {
+public class ScoreManager {
 
     private final JavaPlugin plugin;
-    private final FileManager fileManager;
+    private final ScoreFileManager fileManager;
 
+    private BukkitTask task;
     private final Map<String, Integer> playerScores = new HashMap<>();
-    private Scoreboard scoreboard;
+    private long period = 100;
+    private final Scoreboard scoreboard;
     private Objective objective;
+    private int timerPoint = 1;
 
-    public KillScoreManager(JavaPlugin plugin, FileManager fileManager, Scoreboard scoreboard) {
+    public ScoreManager(JavaPlugin plugin, ScoreFileManager fileManager, Scoreboard scoreboard) {
         this.plugin = plugin;
         this.fileManager = fileManager;
         this.scoreboard = scoreboard;
@@ -34,29 +34,60 @@ public class KillScoreManager {
     }
 
     private void setupScoreboard() {
-        objective = scoreboard.registerNewObjective("kill_score", "dummy", "击杀分数榜");
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        objective = scoreboard.registerNewObjective("score", "dummy", "积分榜");
+        objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+    }
+
+    public void startScoreTask() {
+        if (task != null && !task.isCancelled()) {
+            task.cancel();
+        }
+        task = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!player.isDead()) {
+                        addScore(player, timerPoint);
+                    }
+                }
+                updateAllScoresOnScoreboard();
+            }
+        }.runTaskTimer(plugin, period, period);
+    }
+
+    public void stopScoreTask() {
+        if (task != null && !task.isCancelled()) {
+            task.cancel();
+        }
+    }
+
+    public int getTimerPoint() {
+        return timerPoint;
+    }
+
+    public void setTimerPoint(int timerPoint) {
+        this.timerPoint = timerPoint;
+    }
+
+    public void setPeriod(long period) {
+        this.period = period * 20;
+        stopScoreTask();
+        startScoreTask();
     }
 
     public void loadScores() {
-        Map<String, Integer> storedScores = fileManager.loadAllKillScores();
+        Map<String, Integer> storedScores = fileManager.loadAllScores();
         playerScores.putAll(storedScores);
         updateAllScoresOnScoreboard();
     }
 
     public void saveAllScores() {
-        fileManager.saveAllKillScores(playerScores);
+        fileManager.saveAllScores(playerScores);
     }
 
     public void addScore(Player player, int i) {
         String uuid = player.getUniqueId().toString();
         int score = playerScores.getOrDefault(uuid, 0) + i;
-        playerScores.put(uuid, score);
-    }
-
-    public void timeScore(Player player, double times) {
-        String uuid = player.getUniqueId().toString();
-        int score = (int) (playerScores.getOrDefault(uuid, 0) * times);
         playerScores.put(uuid, score);
     }
 

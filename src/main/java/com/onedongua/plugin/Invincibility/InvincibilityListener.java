@@ -1,5 +1,6 @@
-package com.onedongua.plugin;
+package com.onedongua.plugin.Invincibility;
 
+import com.onedongua.plugin.SIPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,14 +24,19 @@ public class InvincibilityListener implements Listener {
     }
 
     private void giveInvincibility(Player player) {
-        int duration = 2400;
+        int duration = 120 * 20;
         // 创建无敌效果
         PotionEffect invincibilityEffect = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE,
                 duration, 4, false, false, true);
         player.addPotionEffect(invincibilityEffect);
 
         // 发送提示信息
-        player.sendMessage("你已获得 120 秒无敌效果！");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.sendMessage("你已获得 120 秒无敌效果！");
+            }
+        }.runTaskLater(plugin, 10);
 
         // 效果消失提示
         new BukkitRunnable() {

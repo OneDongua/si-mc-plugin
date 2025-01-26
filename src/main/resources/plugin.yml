@@ -1,5 +1,5 @@
 name: si-plugin
-version: '1.4-SNAPSHOT'
+version: '1.5-SNAPSHOT'
 main: com.onedongua.plugin.SIPlugin
 api-version: '1.20'
 commands:
@@ -14,18 +14,27 @@ commands:
           - time <时长(秒)>: 设置加分计时器间隔时长
           - start: 开始计时器
           - stop: 停止计时器
+          - timerpoint <分数>: 设置加分计时器每次加分的分数
     permission: siplugin.siscore
     permission-message: 你没有权限使用此命令！
 
   si-killscore:
     aliases: [ sikillscore ]
-    description: 管理玩家的分数
+    description: 管理玩家的击杀分数
     usage: |
       /si-killscore <子命令> [参数…]
         子命令列表：
           - add <玩家名> <分数>: 增加某玩家的分数
           - set <玩家名> <分数>: 设置某玩家的分数
+          - each <分数>: 设置每个击杀的分数
     permission: siplugin.sikillscore
+    permission-message: 你没有权限使用此命令！
+
+  si-shop:
+    aliases: [ sishop ]
+    description: 商店系统
+    usage: /si-shop 打开商店
+    permission: siplugin.sishop
     permission-message: 你没有权限使用此命令！
 
 permissions:
@@ -34,5 +43,13 @@ permissions:
     default: op
 
   siplugin.sikillscore:
-    description: 允许管理玩家的分数
+    description: 允许管理玩家的击杀分数
+    default: op
+
+  siplugin.sishop:
+    description: 允许打开商店
+    default: true
+
+  siplugin.sishopmanage:
+    description: 允许管理商店
     default: op

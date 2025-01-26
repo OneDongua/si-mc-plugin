@@ -1,5 +1,6 @@
-package com.onedongua.plugin;
+package com.onedongua.plugin.Score.CommandExecutor;
 
+import com.onedongua.plugin.Score.KillScoreManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -7,10 +8,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class ScoreCommandExecutor implements CommandExecutor {
-    private final ScoreManager scoreManager;
+public class KillScoreCommandExecutor implements CommandExecutor {
+    private final KillScoreManager scoreManager;
 
-    public ScoreCommandExecutor(ScoreManager scoreManager) {
+    public KillScoreCommandExecutor(KillScoreManager scoreManager) {
         this.scoreManager = scoreManager;
     }
 
@@ -19,32 +20,22 @@ public class ScoreCommandExecutor implements CommandExecutor {
                              @NotNull Command command,
                              @NotNull String label,
                              String[] args) {
+
+        if (sender instanceof Player player) {
+            // 检查玩家是否拥有权限
+            if (!player.hasPermission("siplugin.sikillscore")) {
+                player.sendMessage("你没有权限打开击杀分商店！");
+                return true;
+            }
+        }
+
         if (args.length < 1) {
             return false;
         }
 
         String subCommand = args[0].toLowerCase();
         switch (subCommand) {
-            case "start":
-                scoreManager.startScoreTask();
-                sender.sendMessage("§2计分板已启动!");
-                return true;
-            case "stop":
-                scoreManager.stopScoreTask();
-                sender.sendMessage("§2计分板已停止!");
-                return true;
-            case "time":
-                if (args.length != 2) return false;
-                try {
-                    long time = Long.parseLong(args[1]);
-                    scoreManager.setPeriod(time);
-                    sender.sendMessage("§2计分板刷新间隔已设置为 " + time + " 秒!");
-                } catch (NumberFormatException e) {
-                    sender.sendMessage("§4请输入有效的时间!");
-                }
-                return true;
-            case "add":
-            case "set":
+            case "add", "set":
                 if (args.length != 3) return false;
 
                 String playerName = args[1];
@@ -76,6 +67,21 @@ public class ScoreCommandExecutor implements CommandExecutor {
                         sender.sendMessage("§2已将玩家 " + playerName + " 的分数设置为 " + score + "!");
                         break;
                 }
+                return true;
+
+            case "each":
+                if (args.length != 2) return false;
+
+                int point;
+                try {
+                    point = Integer.parseInt(args[1]);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("§4请输入有效的分数!");
+                    return true;
+                }
+
+                scoreManager.setEachPoint(point);
+                sender.sendMessage("§2已设置击杀分每次增加 " + point + " 分!");
                 return true;
 
             default:
