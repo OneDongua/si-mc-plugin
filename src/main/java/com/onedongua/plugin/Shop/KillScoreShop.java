@@ -123,7 +123,7 @@ public class KillScoreShop {
         if (killScoreItem != null) {
             ItemMeta meta = killScoreItem.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName("§r当前击杀分: " + killScore);  // 在 ShopClickListener 中有使用该字符串
+                meta.setDisplayName("§r当前击杀分: " + killScore);
                 killScoreItem.setItemMeta(meta);
             }
 

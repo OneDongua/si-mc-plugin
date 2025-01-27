@@ -24,17 +24,17 @@ public class ShopCommandExecutor implements CommandExecutor {
                 killScoreShop.openShop(player);  // 执行打开商店的操作
                 return true;
             }
-
-            String subCommand = args[0].toLowerCase();
-            if (subCommand.equals("reload")
-                    && player.hasPermission("siplugin.sishopmanage")) {
-               killScoreShop.loadConfig();
-               shopClickListener.reloadConfig();
-               player.sendMessage("§2商店配置文件已重载!");
-               return true;
-            }
         }
 
+        if (args.length != 1) return false;
+        String subCommand = args[0].toLowerCase();
+        if (subCommand.equals("reload")
+                && sender.hasPermission("siplugin.sishopmanage")) {
+            killScoreShop.loadConfig();
+            shopClickListener.reloadConfig();
+            sender.sendMessage("§2商店配置文件已重载!");
+            return true;
+        }
         return false;
     }
 }

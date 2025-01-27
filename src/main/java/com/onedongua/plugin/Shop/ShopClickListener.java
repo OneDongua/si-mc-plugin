@@ -16,7 +16,7 @@ import java.util.HashMap;
 
 public class ShopClickListener implements Listener {
 
-    private Logger logger;
+    private final Logger logger;
     private final KillScoreManager killScoreManager;
     private final HashMap<Player, ItemStack> offHandItems;
     private KillScoreShop killScoreShop;
@@ -57,9 +57,7 @@ public class ShopClickListener implements Listener {
         }
 
         ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null ||
-                clickedItem.getItemMeta().getDisplayName().startsWith("§r当前击杀分: ") ||
-                clickedItem.getType() == Material.BARRIER)
+        if (clickedItem == null || clickedItem.getType() == Material.BARRIER)
             return;
 
         // 获取玩家的击杀分
