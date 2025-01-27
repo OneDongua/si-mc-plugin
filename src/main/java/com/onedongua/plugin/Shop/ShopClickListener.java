@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class ShopClickListener implements Listener {
 
@@ -43,6 +44,7 @@ public class ShopClickListener implements Listener {
         // 防止玩家拿取物品
         event.setCancelled(true);
 
+        // 切换副手处理
         ItemStack offHandItem = player.getInventory().getItemInOffHand();
         offHandItems.put(player, offHandItem);
 
@@ -60,7 +62,6 @@ public class ShopClickListener implements Listener {
         if (clickedItem == null || clickedItem.getType() == Material.BARRIER)
             return;
 
-        // 获取玩家的击杀分
         int killScore = killScoreManager.getScore(player);
 
         // 兑换物品逻辑
@@ -68,14 +69,18 @@ public class ShopClickListener implements Listener {
             for (ShopConfig.ShopItem shopItem : shopConfig.getItems()) {
                 if (clickedItem.getType() == Material.getMaterial(shopItem.getMaterial())) {
                     if (killScore >= shopItem.getCost()) {
+                        // 扣分并更新击杀分
                         killScoreManager.addScore(player, -shopItem.getCost());
                         killScoreManager.updateAllScoresOnScoreboard();
                         killScoreManager.notifyShops(player);
 
+                        // 执行兑换
                         if (shopItem.isCommand()) {
-                            String command = replacePlaceholder(shopItem.getCommand(), player.getName());
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-
+                            List<String> commands = shopItem.getCommand();
+                            for (String command : commands) {
+                                command = replacePlaceholder(command, player.getName());
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                            }
                             player.sendMessage(shopItem.getHint());
                             player.closeInventory();
                         } else {
@@ -84,6 +89,7 @@ public class ShopClickListener implements Listener {
 
                             player.sendMessage("§e成功兑换 " + shopItem.getDisplayName() + "！");
                         }
+
                     } else {
                         player.sendMessage("§4击杀分不足");
                     }

@@ -37,7 +37,7 @@ public class ShopConfig {
         private boolean isCommand;
 
         @SerializedName("command")
-        private String command;
+        private List<String> command;
 
         @SerializedName("hint")
         private String hint;
@@ -75,14 +75,12 @@ public class ShopConfig {
         }
 
         public List<String> getLore() {
-            if (lore.size() == 1 && lore.get(0).isEmpty())
+            if (lore == null || lore.size() == 1 && lore.get(0).isEmpty())
                 return new ArrayList<>();
             return lore;
         }
 
         public void setLore(List<String> lore) {
-            if (lore == null)
-                lore = new ArrayList<>();
             this.lore = lore;
         }
 
@@ -92,18 +90,14 @@ public class ShopConfig {
 
         public void setIsCommand(boolean isCommand) {
             this.isCommand = isCommand;
-            if (!isCommand) {
-                command = "";
-                hint = "";
-            }
         }
 
-        public String getCommand() {
-            if (command == null) return "";
+        public List<String> getCommand() {
+            if (command == null) return List.of("");
             return command;
         }
 
-        public void setCommand(String command) {
+        public void setCommand(List<String> command) {
             this.command = command;
         }
 
