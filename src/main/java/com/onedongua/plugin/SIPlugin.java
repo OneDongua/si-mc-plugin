@@ -50,7 +50,7 @@ public class SIPlugin extends JavaPlugin {
         // 注册命令
         registerCommand();
 
-        logger.log("SIPlugin 已启用！");
+        logger.log("SI-Plugin 已启用！");
     }
 
     @Override
@@ -58,7 +58,7 @@ public class SIPlugin extends JavaPlugin {
         // 保存玩家分数
         scoreManager.saveAllScores();
         killScoreManager.saveAllScores();
-        logger.log("SIPlugin 已禁用！");
+        logger.log("SI-Plugin 已禁用！");
     }
 
     private void registerCommand() {

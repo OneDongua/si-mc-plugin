@@ -3,6 +3,7 @@ package com.onedongua.plugin.Shop;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.onedongua.plugin.Logger;
 import com.onedongua.plugin.Score.KillScoreManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -29,11 +30,13 @@ public class KillScoreShop {
     private int killScore;
     private final HashMap<Player, Inventory> playerInventories = new HashMap<>();
     private final JavaPlugin plugin;
+    private final Logger logger;
     private ShopConfig shopConfig;
 
     public KillScoreShop(JavaPlugin plugin, KillScoreManager killScoreManager) {
         this.killScoreManager = killScoreManager;
         this.plugin = plugin;
+        logger = new Logger(plugin);
         killScoreManager.addShop(this);
 
         loadConfig();
@@ -55,9 +58,21 @@ public class KillScoreShop {
         if (shopConfig != null && shopConfig.getItems() != null) {
             for (int i = 0; i < Math.min(shopConfig.getItems().size(), 45); i++) {
                 ShopConfig.ShopItem shopItem = shopConfig.getItems().get(i);
-                ItemStack itemStack = new ItemStack(Material.valueOf(shopItem.getMaterial()), shopItem.getAmount());
-                updateShopItem(shopItem, itemStack);
-                shopInventory.setItem(i, itemStack);
+                Material material = Material.getMaterial(shopItem.getMaterial());
+                if (material != null) {
+                    ItemStack itemStack = new ItemStack(material, shopItem.getAmount());
+                    updateShopItem(shopItem, itemStack);
+                    shopInventory.setItem(i, itemStack);
+                } else {
+                    ItemStack errorItemStack = new ItemStack(Material.BARRIER);
+                    ItemMeta meta = errorItemStack.getItemMeta();
+                    meta.setDisplayName("§4加载错误");
+                    meta.setLore(List.of("§6请联系管理员进行修复"));
+                    errorItemStack.setItemMeta(meta);
+                    shopInventory.setItem(i, errorItemStack);
+                    logger.log("§4警告：未找到物品\"" + shopItem.getMaterial() + "\"");
+                    logger.log("§4请检查配置文件 shop.json");
+                }
             }
         }
 
@@ -108,7 +123,7 @@ public class KillScoreShop {
         if (killScoreItem != null) {
             ItemMeta meta = killScoreItem.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName("§r当前击杀分: " + killScore);
+                meta.setDisplayName("§r当前击杀分: " + killScore);  // 在 ShopClickListener 中有使用该字符串
                 killScoreItem.setItemMeta(meta);
             }
 
@@ -127,7 +142,7 @@ public class KillScoreShop {
             }.getType();
             shopConfig = gson.fromJson(reader, type);
         } catch (IOException e) {
-            plugin.getLogger().warning("无法读取商店配置文件: " + e.getMessage());
+            logger.log(e);
         }
     }
 
@@ -149,7 +164,7 @@ public class KillScoreShop {
         try (FileWriter writer = new FileWriter(configFile)) {
             gson.toJson(defaultConfig, writer);
         } catch (IOException e) {
-            plugin.getLogger().warning("无法保存默认商店配置文件: " + e.getMessage());
+            logger.log(e);
         }
     }
 

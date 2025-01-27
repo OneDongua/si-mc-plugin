@@ -57,7 +57,10 @@ public class ShopClickListener implements Listener {
         }
 
         ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null || !clickedItem.hasItemMeta()) return;
+        if (clickedItem == null ||
+                clickedItem.getItemMeta().getDisplayName().startsWith("§r当前击杀分: ") ||
+                clickedItem.getType() == Material.BARRIER)
+            return;
 
         // 获取玩家的击杀分
         int killScore = killScoreManager.getScore(player);
@@ -65,7 +68,7 @@ public class ShopClickListener implements Listener {
         // 兑换物品逻辑
         if (shopConfig != null && shopConfig.getItems() != null) {
             for (ShopConfig.ShopItem shopItem : shopConfig.getItems()) {
-                if (clickedItem.getType() == Material.valueOf(shopItem.getMaterial())) {
+                if (clickedItem.getType() == Material.getMaterial(shopItem.getMaterial())) {
                     if (killScore >= shopItem.getCost()) {
                         killScoreManager.addScore(player, -shopItem.getCost());
                         killScoreManager.updateAllScoresOnScoreboard();
