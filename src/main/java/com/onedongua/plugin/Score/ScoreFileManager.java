@@ -1,5 +1,7 @@
 package com.onedongua.plugin.Score;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.onedongua.plugin.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -14,6 +16,10 @@ public class ScoreFileManager {
     private Logger logger;
     private final File scoreFile;
     private final File killScoreFile;
+    private final File scoreJsonFile;
+    private final File killScoreJsonFile;
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    public final Map<String, String> players = new HashMap<>();
 
     public ScoreFileManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -22,6 +28,8 @@ public class ScoreFileManager {
         plugin.getDataFolder().mkdirs();
         this.scoreFile = new File(plugin.getDataFolder(), "player_scores.dat");
         this.killScoreFile = new File(plugin.getDataFolder(), "player_kill_scores.dat");
+        this.scoreJsonFile = new File(plugin.getDataFolder(), "player_scores.json");
+        this.killScoreJsonFile = new File(plugin.getDataFolder(), "player_kill_scores.json");
 
         if (!scoreFile.exists()) {
             try {
@@ -72,6 +80,7 @@ public class ScoreFileManager {
         } catch (IOException e) {
             logger.log(e);
         }
+        saveJsonFile(scores, scoreJsonFile);
     }
 
     public int loadPlayerKillScore(Player player) {
@@ -107,7 +116,22 @@ public class ScoreFileManager {
         } catch (IOException e) {
             logger.log(e);
         }
+        saveJsonFile(scores, killScoreJsonFile);
     }
 
-
+    private void saveJsonFile(Map<String, Integer> scores, File file) {
+        Map<String, Integer> playerScores = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : scores.entrySet()) {
+            String name = entry.getKey();
+            if (players.containsKey(name))
+                name = players.get(name);
+            playerScores.put(name,
+                    entry.getValue());
+        }
+        try (FileWriter writer = new FileWriter(file)) {
+            gson.toJson(playerScores, writer);
+        } catch (IOException e) {
+            logger.log(e);
+        }
+    }
 }

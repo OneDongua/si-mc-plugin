@@ -6,7 +6,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.*;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,7 @@ public class ScoreManager {
 
     private final JavaPlugin plugin;
     private final ScoreFileManager fileManager;
+    public final Map<String, String> players;
 
     private BukkitTask task;
     private final Map<String, Integer> playerScores = new HashMap<>();
@@ -27,6 +30,7 @@ public class ScoreManager {
         this.plugin = plugin;
         this.fileManager = fileManager;
         this.scoreboard = scoreboard;
+        players = fileManager.players;
 
         // 初始化计分板
         setupScoreboard();
@@ -46,7 +50,7 @@ public class ScoreManager {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!player.isDead()) {
+                    if (!player.isDead() && !player.getScoreboardTags().contains("escaped")) {
                         addScore(player, timerPoint);
                     }
                 }

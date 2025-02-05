@@ -1,7 +1,7 @@
 package com.onedongua.plugin.Score.Listener;
 
 import com.onedongua.plugin.Score.ScoreManager;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -18,12 +18,12 @@ public class ScoreListener implements Listener {
     public ScoreListener(JavaPlugin plugin, ScoreManager scoreManager) {
         this.scoreManager = scoreManager;
         this.plugin = plugin;
-
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        scoreManager.players.put(player.getUniqueId().toString(), player.getName());
         scoreManager.assignScoreboardToPlayer(player);
         new BukkitRunnable() {
             @Override
@@ -42,9 +42,10 @@ public class ScoreListener implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        // 玩家死亡时清零分数
-        scoreManager.resetScore(player);
-        scoreManager.updateAllScoresOnScoreboard();
+        if (!player.getScoreboardTags().contains("escaped")) {
+            // 玩家死亡时清零分数
+            scoreManager.resetScore(player);
+            scoreManager.updateAllScoresOnScoreboard();
+        }
     }
-
 }

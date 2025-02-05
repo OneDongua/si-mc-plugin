@@ -1,5 +1,5 @@
 name: si-plugin
-version: '1.9-SNAPSHOT'
+version: '1.10-SNAPSHOT'
 main: com.onedongua.plugin.SIPlugin
 api-version: '1.20'
 commands:

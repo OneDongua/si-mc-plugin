@@ -21,11 +21,20 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class KillScoreListener implements Listener {
 
     private final KillScoreManager scoreManager;
     private final JavaPlugin plugin;
     private final Logger logger;
+    private final List<EntityType> targetEntities = Arrays.asList(
+            EntityType.ZOMBIE,
+            EntityType.ZOMBIE_VILLAGER,
+            EntityType.DROWNED,
+            EntityType.HUSK
+    );
 
     public KillScoreListener(JavaPlugin plugin, KillScoreManager scoreManager) {
         this.scoreManager = scoreManager;
@@ -40,8 +49,12 @@ public class KillScoreListener implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                player.sendMessage("§2[通知] 击杀分数死亡减半！");
-                player.sendMessage("§2[通知] 可通过 /si-shop 或 /sishop 进入击杀分商店");
+                if (!player.getScoreboardTags().contains("escaped")) {
+                    player.sendMessage("§2[通知] 击杀分数死亡减半！");
+                    player.sendMessage("§2[通知] 可通过 /si-shop 或 /sishop 进入击杀分商店");
+                } else {
+                    player.sendMessage("§e[提示] 你已成功撤离，分数系统已停用");
+                }
             }
         }.runTaskLater(plugin, 200);
     }
@@ -55,20 +68,19 @@ public class KillScoreListener implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        // 玩家死亡时清零分数
-        scoreManager.timeScore(player, 0.5);
-        scoreManager.updateAllScoresOnScoreboard();
+        if (!player.getScoreboardTags().contains("escaped")) {
+            // 玩家死亡时分数减半
+            scoreManager.timeScore(player, 0.5);
+            scoreManager.updateAllScoresOnScoreboard();
+        }
     }
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Entity entity = event.getEntity();
-        if ((entity.getType() == EntityType.ZOMBIE ||
-                entity.getType() == EntityType.ZOMBIE_VILLAGER ||
-                entity.getType() == EntityType.DROWNED)
-                && entity instanceof LivingEntity) {
+        if (targetEntities.contains(entity.getType()) && entity instanceof LivingEntity) {
             if (event.getDamager() instanceof Player player) {
-                // 给僵尸添加 Metadata，标记最后攻击者
+                // 给实体添加 Metadata，标记最后攻击者
                 entity.setMetadata("LastAttacker",
                         new FixedMetadataValue(plugin, player.getName()));
             }
@@ -77,27 +89,25 @@ public class KillScoreListener implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (event.getEntityType() == EntityType.ZOMBIE ||
-                event.getEntityType() == EntityType.ZOMBIE_VILLAGER ||
-                event.getEntityType() == EntityType.DROWNED) {
-            LivingEntity zombie = event.getEntity();
+        if (targetEntities.contains(event.getEntityType())) {
+            LivingEntity entity = event.getEntity();
 
             // 如果已经处理过，则返回
-            if (zombie.hasMetadata("hasHandledDeath")) return;
+            if (entity.hasMetadata("hasHandledDeath")) return;
             // 标记已处理
-            zombie.setMetadata("hasHandledDeath", new FixedMetadataValue(plugin, true));
+            entity.setMetadata("hasHandledDeath", new FixedMetadataValue(plugin, true));
 
             // 检测 1
-            Player player = zombie.getKiller();
+            Player player = entity.getKiller();
 
             // 检测 2
-            if (player == null && zombie.hasMetadata("LastAttacker")) {
-                String playerName = zombie.getMetadata("LastAttacker").get(0).asString();
+            if (player == null && entity.hasMetadata("LastAttacker")) {
+                String playerName = entity.getMetadata("LastAttacker").get(0).asString();
                 logger.logf(playerName + " 进入检测2");
                 player = Bukkit.getPlayer(playerName);
             }
 
-            if (player != null && player.isOnline()) {
+            if (player != null && player.isOnline() && !player.getScoreboardTags().contains("escaped")) {
                 // 给玩家加分
                 int point = scoreManager.getEachPoint();
                 scoreManager.addScore(player, point);
