@@ -1,6 +1,7 @@
 package com.onedongua.plugin.Score.Listener;
 
 import com.onedongua.plugin.Score.ScoreManager;
+import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,6 +32,13 @@ public class ScoreListener implements Listener {
                 player.sendMessage("§2[通知] 生存积分已迁移至 Tab 列表！");
             }
         }.runTaskLater(plugin, 200);
+
+        // 校准
+        int ticksSinceDeath = player.getStatistic(Statistic.TIME_SINCE_DEATH);
+        int score = (int) (ticksSinceDeath / 20.0 / 5.0);
+        if (Math.abs(score - scoreManager.getScore(player)) > 60) {
+            scoreManager.setScore(player, score);
+        }
     }
 
     @EventHandler

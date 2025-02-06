@@ -2,6 +2,7 @@ package com.onedongua.plugin.Score;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.onedongua.plugin.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,13 +14,15 @@ import java.util.Map;
 public class ScoreFileManager {
 
     private final JavaPlugin plugin;
-    private Logger logger;
+    private final Logger logger;
     private final File scoreFile;
     private final File killScoreFile;
-    private final File scoreJsonFile;
-    private final File killScoreJsonFile;
+    private final File playersFile;
+    private final File historyFolder;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     public final Map<String, String> players = new HashMap<>();
+    private long lastSaveBackupTime = 0;
+    private long lastSaveKillBackupTime = 0;
 
     public ScoreFileManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -28,8 +31,8 @@ public class ScoreFileManager {
         plugin.getDataFolder().mkdirs();
         this.scoreFile = new File(plugin.getDataFolder(), "player_scores.dat");
         this.killScoreFile = new File(plugin.getDataFolder(), "player_kill_scores.dat");
-        this.scoreJsonFile = new File(plugin.getDataFolder(), "player_scores.json");
-        this.killScoreJsonFile = new File(plugin.getDataFolder(), "player_kill_scores.json");
+        this.historyFolder = new File(plugin.getDataFolder(), "history");
+        this.playersFile = new File(plugin.getDataFolder(), "players.json");
 
         if (!scoreFile.exists()) {
             try {
@@ -45,6 +48,10 @@ public class ScoreFileManager {
                 logger.log(e);
             }
         }
+        if (!historyFolder.exists()) {
+            historyFolder.mkdirs();
+        }
+
     }
 
     public int loadPlayerScore(Player player) {
@@ -80,7 +87,11 @@ public class ScoreFileManager {
         } catch (IOException e) {
             logger.log(e);
         }
-        saveJsonFile(scores, scoreJsonFile);
+        long now = System.currentTimeMillis();
+        if (now - lastSaveBackupTime > 3600000) {
+            saveJsonFile(scores, new File(historyFolder, "scores_" + System.currentTimeMillis() + ".json"));
+            lastSaveBackupTime = now;
+        }
     }
 
     public int loadPlayerKillScore(Player player) {
@@ -116,7 +127,11 @@ public class ScoreFileManager {
         } catch (IOException e) {
             logger.log(e);
         }
-        saveJsonFile(scores, killScoreJsonFile);
+        long now = System.currentTimeMillis();
+        if (now - lastSaveKillBackupTime > 3600000) {
+            saveJsonFile(scores, new File(historyFolder, "kill_scores_" + System.currentTimeMillis() + ".json"));
+            lastSaveKillBackupTime = now;
+        }
     }
 
     private void saveJsonFile(Map<String, Integer> scores, File file) {
@@ -130,6 +145,33 @@ public class ScoreFileManager {
         }
         try (FileWriter writer = new FileWriter(file)) {
             gson.toJson(playerScores, writer);
+        } catch (IOException e) {
+            logger.log(e);
+        }
+    }
+
+    public void loadPlayers() {
+        if (!playersFile.exists()) {
+            try {
+                playersFile.createNewFile();
+            } catch (IOException e) {
+                logger.log(e);
+            }
+        }
+        if (playersFile.length() == 0) return;
+        try (FileReader reader = new FileReader(playersFile)) {
+            players.putAll(gson.fromJson(reader,
+                    new TypeToken<Map<String, String>>() {
+                    }.getType()));
+            logger.logf(players.toString());
+        } catch (IOException e) {
+            logger.log(e);
+        }
+    }
+
+    public void savePlayers() {
+        try (FileWriter writer = new FileWriter(playersFile)) {
+            gson.toJson(players, writer);
         } catch (IOException e) {
             logger.log(e);
         }

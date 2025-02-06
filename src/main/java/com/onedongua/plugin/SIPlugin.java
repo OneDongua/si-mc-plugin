@@ -1,11 +1,13 @@
 package com.onedongua.plugin;
 
 import com.onedongua.plugin.Invincibility.InvincibilityListener;
-import com.onedongua.plugin.Score.*;
 import com.onedongua.plugin.Score.CommandExecutor.KillScoreCommandExecutor;
 import com.onedongua.plugin.Score.CommandExecutor.ScoreCommandExecutor;
+import com.onedongua.plugin.Score.KillScoreManager;
 import com.onedongua.plugin.Score.Listener.KillScoreListener;
 import com.onedongua.plugin.Score.Listener.ScoreListener;
+import com.onedongua.plugin.Score.ScoreFileManager;
+import com.onedongua.plugin.Score.ScoreManager;
 import com.onedongua.plugin.Shop.KillScoreShop;
 import com.onedongua.plugin.Shop.ShopClickListener;
 import com.onedongua.plugin.Shop.ShopCommandExecutor;
@@ -32,6 +34,8 @@ public class SIPlugin extends JavaPlugin {
         Scoreboard scoreboard = manager.getNewScoreboard();
 
         fileManager = new ScoreFileManager(this);
+        fileManager.loadPlayers();
+
         scoreManager = new ScoreManager(this, fileManager, scoreboard);
         killScoreManager = new KillScoreManager(this, fileManager, scoreboard);
 
@@ -55,6 +59,7 @@ public class SIPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        fileManager.savePlayers();
         // 保存玩家分数
         scoreManager.saveAllScores();
         killScoreManager.saveAllScores();

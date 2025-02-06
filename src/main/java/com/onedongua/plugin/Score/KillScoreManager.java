@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -32,6 +33,23 @@ public class KillScoreManager {
         // 初始化计分板
         setupScoreboard();
         loadScores();
+
+        backup();
+    }
+
+    private void backup() {
+        long currentTimeMillis = System.currentTimeMillis(); // 当前时间戳
+        long nextHourMillis = ((currentTimeMillis / 3600000) + 1) * 3600000; // 计算下一个整点时间
+        long delayMillis = nextHourMillis - currentTimeMillis; // 计算剩余时间
+        long delayTicks = delayMillis / 50; // 转换为 Minecraft Tick（1秒 = 20 Tick）
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                saveAllScores();
+                backup(); // 继续安排下一个整点任务
+            }
+        }.runTaskLater(plugin, delayTicks);
     }
 
     private void setupScoreboard() {
